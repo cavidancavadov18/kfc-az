@@ -1,0 +1,19 @@
+{
+  "name": "KFC Azərbaycan",
+  "short_name": "KFC AZ",
+  "description": "KFC Azərbaycan menyu və sifariş demo",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e6002a",
+  "theme_color": "#e6002a",
+  "lang": "az",
+  "icons": [
+    {
+      "src": "https://kfc.az/_next/static/media/kfcLogo.0ef986cb.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
