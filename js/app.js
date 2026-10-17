@@ -50,7 +50,8 @@
     favIds: [],
     overrides: {},
     orders: [],
-    ready: false
+    ready: false,
+    menuSkeleton: false
   };
   let gameTimer = 0;
   let statusTimer = 0;
@@ -403,10 +404,12 @@
     applyTheme();
     document.documentElement.lang = lang() === "az" ? "az" : lang();
     document.title = t("titles." + page);
+    document.body.classList.toggle("has-mnav", true);
     document.getElementById("root").innerHTML = [
       header(),
       main(page),
       footer(),
+      mobileNav(),
       cookieBar(),
       installBanner(),
       state.drawer ? backdrop() + drawer() : "",
@@ -434,6 +437,8 @@
     window.scrollTo(0, y);
     syncHeader();
     syncScrollTop();
+    armReveal();
+    if (!keepScroll) armPageEnter();
   }
 
   function syncHeader() {
@@ -448,25 +453,41 @@
     button.hidden = window.scrollY < 320;
   }
 
+  function currentPath() {
+    const slug = (location.pathname.split("/").pop() || "").toLowerCase().replace(/\.html$/, "");
+    return !slug || slug === "index" ? "/" : "/" + slug;
+  }
+
+  function mobileNav() {
+    const here = currentPath();
+    const item = (href, label) => `<a class="mnav-item${here === href ? " on" : ""}" href="${href}"><span>${esc(label)}</span></a>`;
+    return `<nav class="mobile-nav" aria-label="Sections">
+      ${item("/", t("ui.home"))}
+      ${item("/menu", t("nav.menu"))}
+      <a class="mnav-order${here === "/menu" ? " on" : ""}" href="/menu"><span>${esc(t("nav.order"))}</span></a>
+      ${item("/offers", t("nav.offers"))}
+      ${item("/branches", t("drawer.branches"))}
+    </nav>`;
+  }
+
   function header() {
     const user = session();
-    const slug = (location.pathname.split("/").pop() || "").toLowerCase().replace(/\.html$/, "");
-    const here = !slug || slug === "index" ? "/" : "/" + slug;
+    const here = currentPath();
     const link = (href, label, extra) => `<a class="${extra || ""}${here === href.split("#")[0] ? " on" : ""}" href="${href}">${esc(label)}</a>`;
     const account = user
-      ? `<a class="user-chip" href="/orders">${esc(user.name.split(" ")[0])}</a>`
-      : link("/login", t("nav.login"), "hide-sm");
+      ? `<a class="user-chip hide-m" href="/orders">${esc(user.name.split(" ")[0])}</a>`
+      : link("/login", t("nav.login"), "hide-sm hide-m");
     const count = cart().reduce((sum, row) => sum + row.qty, 0);
     return `<header class="header">
-      <a class="logo" href="/"><img src="${LOGO}" alt="KFC"></a>
+      <a class="logo" href="/" title="${esc(t("ui.home"))}" aria-label="${esc(t("ui.home"))}"><img src="${LOGO}" alt="KFC"></a>
       <nav class="nav">
         ${link("/career", t("nav.career"), "hide-sm")}
         ${link("/offers", t("nav.offers"), "hide-sm")}
         ${link("/menu", t("nav.menu"), "hide-sm")}
         ${link("/favorites", t("ui.favorites"), "hide-sm")}
-        <a class="btn-order" href="/menu">${esc(t("nav.order"))}</a>
+        <a class="btn-order hide-m" href="/menu">${esc(t("nav.order"))}</a>
         ${account}
-        <div class="lang-switch" role="group" aria-label="Language">
+        <div class="lang-switch hide-m" role="group" aria-label="Language">
           ${["az", "en", "ru"].map((code) => `<button type="button" data-act="lang" data-lang="${code}" class="${lang() === code ? "on" : ""}">${code.toUpperCase()}</button>`).join("")}
         </div>
         <button class="theme-btn icon-btn${theme() === "dark" ? " is-sun" : " is-moon"}" type="button" data-act="theme" aria-label="${theme() === "dark" ? "Light" : "Dark"}" title="${theme() === "dark" ? "Gündüz" : "Gecə"}">
@@ -696,7 +717,7 @@
     const spicy = /acıl|acı|spicy|hot/i.test(product.name);
     const sold = !!product.soldOut;
     const liked = isFav(product.id);
-    return `<article class="pcard${sold ? " is-sold" : ""}" data-act="open" data-id="${product.id}">
+    return `<article class="pcard reveal${sold ? " is-sold" : ""}" data-act="open" data-id="${product.id}">
       <div class="photo">
         <button class="fav-btn${liked ? " on" : ""}" type="button" data-act="fav" data-id="${product.id}" aria-label="${esc(liked ? t("ui.favRemove") : t("ui.favAdd"))}">${liked ? "♥" : "♡"}</button>
         ${spicy ? CHILI : ""}
@@ -794,6 +815,16 @@
         <div class="hero-track" style="transform:translateX(-${state.slide * 100}%)">
           ${window.SLIDES.map((src, index) => `<div class="hero-slide${index === state.slide ? " live" : ""}"><img src="${esc(src)}" alt="KFC"></div>`).join("")}
         </div>
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="hero-brand">KFC</p>
+          <h1>${esc(t("ui.heroTitle"))}</h1>
+          <p class="hero-lead">${esc(t("ui.heroLead"))}</p>
+          <div class="hero-cta">
+            <a class="btn-red hero-order" href="/menu">${esc(t("nav.order"))}</a>
+            <a class="hero-link" href="/offers">${esc(t("ui.offers"))}</a>
+          </div>
+        </div>
         <div class="hero-progress run"></div>
         <button class="hero-btn prev" type="button" data-act="prev" aria-label="Previous">${CHEV_L}</button>
         <button class="hero-btn next" type="button" data-act="next" aria-label="Next">${CHEV_R}</button>
@@ -802,7 +833,7 @@
         </div>
       </div>
     </section>
-    ${pick ? `<section class="daily-band">
+    ${pick ? `<section class="daily-band reveal">
       <div class="daily-copy">
         <p class="eyebrow">${esc(t("ui.dailyPick"))}</p>
         <h2>${esc(pick.name)}</h2>
@@ -817,23 +848,24 @@
       </button>
     </section>` : ""}
     <section class="offers-band">
-      <div class="offers-head">
+      <div class="offers-head reveal">
         <h2>${esc(t("ui.offers"))}</h2>
         <a class="open-now" href="/branches"><i></i>${esc(openNowLabel())}</a>
       </div>
-      <div class="offer-row">${featured.map((item) => `<a class="offer-shot" href="/offers"><img src="${esc(img(item.image))}" alt="${esc(item.name)}"></a>`).join("")}</div>
+      <div class="offer-row">${featured.map((item) => `<a class="offer-shot reveal" href="/offers"><img src="${esc(img(item.image))}" alt="${esc(item.name)}"></a>`).join("")}</div>
     </section>
-    <section class="story-band">
+    <section class="story-band reveal">
       <div class="story-photo" style="background-image:url('${APP_BG}')"></div>
       <div class="story-overlay">
         <div class="story-box">
           <h2>${esc(t("ui.aboutTitle"))}</h2>
           <p>${esc(t("story"))}</p>
+          <a class="story-more" href="/about">${esc(t("ui.more"))}</a>
         </div>
       </div>
     </section>
     <section class="home-bottom">
-      <article class="join-card">
+      <article class="join-card reveal">
         <div>
           <h2>${esc(t("ui.appTitle"))}</h2>
           <p>${esc(t("ui.appText"))}</p>
@@ -841,7 +873,7 @@
         </div>
         <img src="${RESEARCH}" alt="KFC">
       </article>
-      <article class="feedback-card">
+      <article class="feedback-card reveal">
         <h2>${esc(t("ui.feedback"))}</h2>
         ${state.sent === "feedback" ? `<p class="note">${esc(t("ui.sent"))}</p>` : `<form data-form="feedback">
           <label class="field"><span>${esc(t("ui.restaurant"))}</span><select name="restaurant" required>${branchOptions()}</select></label>
@@ -902,7 +934,7 @@
         <div class="filter-row" role="group">
           ${filters.map(([key, label]) => `<button type="button" data-act="filter" data-val="${key}" class="${state.menuFilter === key ? "on" : ""}">${esc(label)}</button>`).join("")}
         </div>
-        <div class="card-grid menu-grid" id="menu-grid">${items.length ? items.map(card).join("") : `<p class="empty">${esc(words.empty)}</p>`}</div>
+        <div class="card-grid menu-grid" id="menu-grid">${state.menuSkeleton ? skeletonCards() : (items.length ? items.map(card).join("") : `<p class="empty">${esc(words.empty)}</p>`)}</div>
       </div>
     </div>`;
   }
@@ -974,7 +1006,7 @@
           }).join("");
           const when = order.at ? new Date(order.at).toLocaleString(lang() === "ru" ? "ru-RU" : lang() === "en" ? "en-GB" : "az-AZ") : "";
           const steps = trackSteps(order).map((step) => `<li class="${step.on ? "on" : ""}${step.live ? " live" : ""}"><i></i><span>${esc(step.label)}</span></li>`).join("");
-          return `<article class="order-card">
+          return `<article class="order-card reveal">
             <div class="order-card-top">
               <div><strong>${esc(order.number)}</strong><small>${esc(when)}</small></div>
               <span class="order-pill ${esc(order.status || "new")}">${esc(statusMap[order.status] || order.status || statusMap.new)}</span>
@@ -1240,9 +1272,94 @@
     }, 4200);
   }
 
-  function add(id, qty = 1, note = "") {
+  function reduceMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function skeletonCards(n = 6) {
+    return Array.from({ length: n }, () => `<div class="pcard skeleton-card" aria-hidden="true"><div class="photo sk"></div><div class="body"><div class="sk sk-line"></div><div class="sk sk-line short"></div><div class="sk sk-btn"></div></div></div>`).join("");
+  }
+
+  function armPageEnter() {
+    if (reduceMotion()) return;
+    document.body.classList.remove("is-entering");
+    void document.body.offsetWidth;
+    document.body.classList.add("is-entering");
+    clearTimeout(armPageEnter.timer);
+    armPageEnter.timer = setTimeout(() => document.body.classList.remove("is-entering"), 480);
+  }
+
+  function armReveal() {
+    const nodes = document.querySelectorAll(".reveal:not(.in)");
+    if (!nodes.length) return;
+    if (reduceMotion()) {
+      nodes.forEach((node) => node.classList.add("in"));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -36px 0px" });
+    nodes.forEach((node, index) => {
+      node.style.setProperty("--reveal-delay", `${Math.min(index % 8, 7) * 40}ms`);
+      io.observe(node);
+    });
+  }
+
+  function bounceBag() {
+    const bag = document.querySelector(".icon-btn.bag");
+    if (!bag) return;
+    bag.classList.remove("bag-bounce");
+    void bag.offsetWidth;
+    bag.classList.add("bag-bounce");
+    setTimeout(() => bag.classList.remove("bag-bounce"), 520);
+  }
+
+  function flyToCart(fromEl) {
+    if (reduceMotion() || !fromEl) {
+      bounceBag();
+      return;
+    }
+    const img = fromEl.matches?.("img") ? fromEl : fromEl.querySelector?.("img");
+    const bag = document.querySelector(".icon-btn.bag");
+    if (!img || !bag) {
+      bounceBag();
+      return;
+    }
+    const a = img.getBoundingClientRect();
+    const b = bag.getBoundingClientRect();
+    if (!a.width || !b.width) {
+      bounceBag();
+      return;
+    }
+    const ghost = document.createElement("img");
+    ghost.className = "cart-fly";
+    ghost.src = img.currentSrc || img.src;
+    ghost.alt = "";
+    ghost.style.left = a.left + "px";
+    ghost.style.top = a.top + "px";
+    ghost.style.width = a.width + "px";
+    ghost.style.height = a.height + "px";
+    document.body.appendChild(ghost);
+    requestAnimationFrame(() => {
+      ghost.style.left = b.left + b.width / 2 - 18 + "px";
+      ghost.style.top = b.top + b.height / 2 - 18 + "px";
+      ghost.style.width = "36px";
+      ghost.style.height = "36px";
+      ghost.style.opacity = "0.35";
+      ghost.style.transform = "scale(.35) rotate(12deg)";
+    });
+    setTimeout(() => ghost.remove(), 680);
+    setTimeout(bounceBag, 520);
+  }
+
+  function add(id, qty = 1, note = "", flyFrom) {
     const product = productById(id);
     if (!product || product.soldOut || product.hidden) return;
+    if (flyFrom) flyToCart(flyFrom);
     const items = cart();
     const row = items.find((item) => item.id === Number(id) && (item.note || "") === (note || ""));
     if (row) row.qty += qty;
@@ -1271,6 +1388,7 @@
   function addConfigured() {
     const product = productById(state.productId);
     if (!product) return;
+    const flyFrom = document.querySelector(".product-modal img, .modal img, .sheet img");
     const bits = [];
     if (state.sauceId) {
       const sauce = productById(state.sauceId);
@@ -1284,7 +1402,7 @@
       const side = productById(state.sideId);
       if (side) bits.push(t("ui.side") + ": " + side.name);
     }
-    add(product.id, state.productQty, bits.join(" · "));
+    add(product.id, state.productQty, bits.join(" · "), flyFrom);
   }
 
   function changeQty(index, dir) {
@@ -1423,7 +1541,16 @@
       }
     }
     if (act === "qty") changeQty(el.dataset.i, Number(el.dataset.dir));
-    if (act === "cat") { state.cat = el.dataset.cat; state.menuQuery = ""; render(true); }
+    if (act === "cat") {
+      state.cat = el.dataset.cat;
+      state.menuQuery = "";
+      state.menuSkeleton = true;
+      render(true);
+      setTimeout(() => {
+        state.menuSkeleton = false;
+        render(true);
+      }, 260);
+    }
     if (act === "branch") { state.branch = Number(el.dataset.i); render(true); }
     if (act === "cookie") { localStorage.setItem("kfc_cookie", el.dataset.val); render(true); }
     if (act === "courier") {
@@ -1540,6 +1667,7 @@
       const count = document.getElementById("menu-count");
       if (grid) grid.innerHTML = items.length ? items.map(card).join("") : `<p class="empty">${esc(words.empty)}</p>`;
       if (count) count.textContent = items.length + " " + words.count;
+      armReveal();
     }
     if (event.target.id === "q") {
       state.query = event.target.value;
