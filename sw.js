@@ -1,4 +1,4 @@
-const CACHE = "kfc-az-v18";
+const CACHE = "kfc-az-v26";
 const SHELL = [
   "/",
   "/menu",
@@ -6,12 +6,12 @@ const SHELL = [
   "/orders",
   "/favorites",
   "/branches",
-  "/css/styles.css?v=18",
-  "/js/catalog.js?v=18",
-  "/js/branches.js?v=18",
-  "/js/content.js?v=18",
-  "/js/i18n.js?v=18",
-  "/js/app.js?v=18",
+  "/css/styles.css?v=26",
+  "/js/catalog.js?v=25",
+  "/js/branches.js?v=25",
+  "/js/content.js?v=25",
+  "/js/i18n.js?v=25",
+  "/js/app.js?v=26",
   "/manifest.webmanifest"
 ];
 
@@ -31,13 +31,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith(
-    caches.match(req).then((hit) => {
-      const net = fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy));
-        return res;
-      }).catch(() => hit);
-      return hit || net;
-    })
+    fetch(req).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((cache) => cache.put(req, copy));
+      return res;
+    }).catch(() => caches.match(req))
   );
 });

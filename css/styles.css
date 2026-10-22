@@ -1951,3 +1951,114 @@ body.is-entering .home-bottom {
   100% { background-position: -200% 0; }
 }
 .offer-shot img { transition: transform .45s ease; }
+
+@media (max-width: 860px) {
+  .product-modal-grid,
+  .product-modal-media,
+  .product-modal-copy,
+  .pick-block,
+  .pick-row,
+  .modal-actions,
+  .meta-row {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .product-modal-media img {
+    width: 100%;
+    max-width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+  }
+  .product-modal-copy > p { overflow-wrap: anywhere; }
+  .pick-row { width: 100%; overflow-x: auto; }
+}
+
+@media (max-width: 760px) {
+  html {
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+    scrollbar-width: none;
+  }
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+  .branch-list { max-height: none; overflow: visible; }
+  .footer .copy {
+    margin: 24px -16px 0;
+    width: auto;
+    height: auto;
+    min-height: 36px;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    gap: 4px 12px;
+  }
+  .catalog .card-grid { grid-template-columns: 1fr 1fr; }
+  .catalog .pcard .photo { height: 150px; }
+  .offer-shot {
+    flex: 0 0 calc(100% - 36px);
+    width: calc(100% - 36px);
+    height: 176px;
+  }
+  .kfc-stripe { display: none; }
+  .side {
+    top: 56px;
+    padding: 8px 4px 8px 8px;
+    gap: 2px;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent);
+  }
+  .side button {
+    white-space: normal;
+    text-align: center;
+    min-width: 76px;
+    padding: 6px 8px;
+    scroll-snap-align: start;
+  }
+  .side button > span:not(.bubble) {
+    max-width: 76px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .side .bubble { width: 40px; height: 40px; flex-basis: 40px; }
+  .modal-layer { padding: 0; align-items: end; }
+  .product-modal {
+    width: 100%;
+    max-height: min(92vh, 100%);
+    border-radius: 18px 18px 0 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .product-modal-copy { padding: 16px 16px 8px; }
+  .product-modal-copy h2 { font-size: 22px; }
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 8px -16px 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    box-shadow: 0 -10px 24px rgba(0, 0, 0, .06);
+  }
+  .modal-actions .btn-red { flex: 1; min-width: 0; width: auto; }
+  html.theme-dark .modal-actions { background: #1c1c1c; }
+  .toast {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  }
+  .drawer { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .story-photo { transform: none; }
+  .mnav-item span { font-size: 11px; letter-spacing: 0; }
+}
+
+@media (max-width: 520px) {
+  .catalog .card-grid { grid-template-columns: 1fr; }
+  .catalog .pcard .photo { height: 168px; }
+}

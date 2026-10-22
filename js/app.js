@@ -460,13 +460,18 @@
 
   function mobileNav() {
     const here = currentPath();
+    const labels = {
+      az: { home: "Ana", menu: "Menyu", order: "Sifariş", offers: "Təklif", branches: "Restoran" },
+      en: { home: "Home", menu: "Menu", order: "Order", offers: "Offers", branches: "Stores" },
+      ru: { home: "Главная", menu: "Меню", order: "Заказ", offers: "Акции", branches: "Точки" }
+    }[lang()] || { home: "Ana", menu: "Menyu", order: "Sifariş", offers: "Təklif", branches: "Restoran" };
     const item = (href, label) => `<a class="mnav-item${here === href ? " on" : ""}" href="${href}"><span>${esc(label)}</span></a>`;
     return `<nav class="mobile-nav" aria-label="Sections">
-      ${item("/", t("ui.home"))}
-      ${item("/menu", t("nav.menu"))}
-      <a class="mnav-order${here === "/menu" ? " on" : ""}" href="/menu"><span>${esc(t("nav.order"))}</span></a>
-      ${item("/offers", t("nav.offers"))}
-      ${item("/branches", t("drawer.branches"))}
+      ${item("/", labels.home)}
+      ${item("/menu", labels.menu)}
+      <a class="mnav-order${here === "/menu" ? " on" : ""}" href="/menu"><span>${esc(labels.order)}</span></a>
+      ${item("/offers", labels.offers)}
+      ${item("/branches", labels.branches)}
     </nav>`;
   }
 
