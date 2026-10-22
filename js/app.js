@@ -325,6 +325,10 @@
       state.noticeExtra = Math.round(data.rate * 100) + "% " + t("ui.couponOff");
       return true;
     } catch {
+      if (String(state.coupon || "").trim().toUpperCase() === clean) {
+        state.coupon = "";
+        localStorage.removeItem("kfc_coupon");
+      }
       state.noticeKey = "ui.couponBad";
       state.noticeExtra = "";
       return false;
@@ -632,6 +636,21 @@
 
   function backdrop() { return `<div class="backdrop" data-act="close"></div>`; }
 
+  function noticeHtml() {
+    if (!state.noticeKey) return "";
+    const errors = {
+      "ui.couponBad": 1,
+      "ui.needLogin": 1,
+      "ui.needBranch": 1,
+      "ui.needPhone": 1,
+      "ui.needAddress": 1,
+      "ui.err": 1,
+      "ui.soldOut": 1
+    };
+    const cls = errors[state.noticeKey] ? "note note-error" : "note";
+    return `<p class="${cls}">${esc(t(state.noticeKey))}${state.noticeExtra ? " " + esc(state.noticeExtra) : ""}</p>`;
+  }
+
   function drawer() {
     const user = session();
     const rows = cart().map((row, index) => {
@@ -686,7 +705,7 @@
              <option value="card" ${state.pay === "card" ? "selected" : ""}>${esc(t("ui.card"))}</option>
            </select>
          </div>
-         ${state.noticeKey ? `<p class="note">${esc(t(state.noticeKey))}${state.noticeExtra ? " " + esc(state.noticeExtra) : ""}</p>` : ""}
+         ${noticeHtml()}
          <button class="btn-red" type="button" data-act="checkout" style="width:100%">${esc(t("drawer.checkout"))}</button>
          <button class="ghost-link" type="button" data-act="open-game">${esc(t("ui.game"))}</button>`
       : `<div class="empty-basket"><img src="${EMPTY_BASKET}" alt=""><p class="empty">${esc(t("drawer.empty"))}</p></div>
@@ -1434,8 +1453,21 @@
     const address = document.getElementById("co-address")?.value?.trim() || state.address;
     const note = document.getElementById("co-note")?.value?.trim() || state.note;
     const pay = document.getElementById("pay")?.value || state.pay;
-    const couponInput = document.getElementById("co-coupon")?.value?.trim();
-    if (couponInput && couponInput.toUpperCase() !== state.coupon) await applyCoupon(couponInput);
+    const couponInput = document.getElementById("co-coupon")?.value?.trim() || "";
+    let couponToSend = "";
+    if (couponInput) {
+      const couponOk = await applyCoupon(couponInput);
+      if (couponOk) couponToSend = state.coupon;
+      else {
+        state.coupon = "";
+        state.couponDraft = "";
+        localStorage.removeItem("kfc_coupon");
+      }
+    } else {
+      state.coupon = "";
+      state.couponDraft = "";
+      localStorage.removeItem("kfc_coupon");
+    }
     if (!branch) { state.noticeKey = "ui.needBranch"; render(true); return; }
     if (!phone) { state.noticeKey = "ui.needPhone"; render(true); return; }
     if (state.delivery === "delivery" && !address) { state.noticeKey = "ui.needAddress"; render(true); return; }
@@ -1459,7 +1491,7 @@
           phone,
           pay,
           note,
-          coupon: state.coupon || ""
+          coupon: couponToSend
         })
       });
       const number = data.order.number;
@@ -1476,11 +1508,14 @@
       launchConfetti();
       render(true);
     } catch (err) {
-      const detail = String(err.data?.detail || "");
-      if (detail.includes("needBranch")) state.noticeKey = "ui.needBranch";
+      const raw = err.data && err.data.detail;
+      const detail = Array.isArray(raw) ? raw.map((item) => item.msg || "").join(" ") : String(raw || "");
+      if (detail.includes("Login required")) state.noticeKey = "ui.needLogin";
+      else if (detail.includes("needBranch")) state.noticeKey = "ui.needBranch";
       else if (detail.includes("needPhone")) state.noticeKey = "ui.needPhone";
       else if (detail.includes("needAddress")) state.noticeKey = "ui.needAddress";
-      else if (detail.includes("coupon")) state.noticeKey = "ui.couponBad";
+      else if (detail.includes("coupon") || detail === "bad") state.noticeKey = "ui.couponBad";
+      else if (detail.includes("unavailable") || detail.includes("unknown")) state.noticeKey = "ui.soldOut";
       else state.noticeKey = "ui.err";
       state.noticeExtra = "";
       render(true);

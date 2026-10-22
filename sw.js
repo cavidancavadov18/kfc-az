@@ -1,4 +1,4 @@
-const CACHE = "kfc-az-v26";
+const CACHE = "kfc-az-v28";
 const SHELL = [
   "/",
   "/menu",
@@ -6,12 +6,12 @@ const SHELL = [
   "/orders",
   "/favorites",
   "/branches",
-  "/css/styles.css?v=26",
+  "/css/styles.css?v=28",
   "/js/catalog.js?v=25",
   "/js/branches.js?v=25",
   "/js/content.js?v=25",
-  "/js/i18n.js?v=25",
-  "/js/app.js?v=26",
+  "/js/i18n.js?v=28",
+  "/js/app.js?v=28",
   "/manifest.webmanifest"
 ];
 

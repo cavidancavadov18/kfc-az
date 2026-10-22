@@ -735,6 +735,7 @@ body:has(.cookie) .scroll-top { bottom: 118px; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .counter { font-size: 12px; color: var(--muted); }
 .note { font-size: 14px; color: #1b7f3a; background: #eefaf1; border-radius: 10px; padding: 12px 14px; }
+.note-error { color: #c40022; background: #fff1f3; }
 
 .footer { background: #fff; color: #212529; padding: 48px 48px 0; border-top: 1px solid rgba(0, 0, 0, .08); }
 .footer-grid { display: grid; grid-template-columns: 180px 1fr 1fr 1fr 160px; gap: 24px; align-items: start; }
@@ -1632,6 +1633,7 @@ html.theme-dark .socials a {
 html.theme-dark .cookie { background: #0f1512; color: #cde8d6; }
 html.theme-dark .toast { background: #222; color: #fff; }
 html.theme-dark .note { background: #13281a; color: #8fdfa8; }
+html.theme-dark .note-error { background: #3a1218; color: #ffb3c0; }
 html.theme-dark .branch-item:hover { background: #222; }
 html.theme-dark .branch-item.on { background: #2a1216; }
 html.theme-dark .story-overlay { background: rgba(0, 0, 0, .45); }
