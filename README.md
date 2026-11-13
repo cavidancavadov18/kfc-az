@@ -1,6 +1,8 @@
-# KFC AZ (local backend)
+# KFC AZ (Python backend)
 
-Real SQLite + FastAPI backend. Cart stays in the browser; accounts, orders, favorites, messages and admin live on the server.
+Backend: **Python** (FastAPI + SQLite). Frontend is static HTML/CSS/JS only — no TypeScript.
+
+Cart stays in the browser; accounts, orders, favorites, messages and admin live on the server.
 
 ## Run
 

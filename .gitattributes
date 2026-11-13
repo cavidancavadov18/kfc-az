@@ -1,0 +1,7 @@
+# Frontend is not the backend language for this repo.
+*.js linguist-vendored
+*.css linguist-vendored
+*.html linguist-documentation
+*.ps1 linguist-vendored
+Dockerfile linguist-vendored
+sw.js linguist-vendored
